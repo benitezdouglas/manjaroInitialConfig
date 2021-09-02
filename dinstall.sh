@@ -2,7 +2,7 @@
 pacmanInstall()
 {
   if pacman -Qs $1 > /dev/null; then
-    echo $1 "is already installed"
+    echo "package" \"$1\" "is already installed"
   else
     sudo pacman -S $1 --noconfirm
   fi
@@ -11,7 +11,7 @@ pacmanInstall()
 pamacInstall()
 {
   if pacman -Qs $1 > /dev/null; then
-    echo $1 "is already installed"
+    echo "package" \"$1\" "is already installed"
   else
     sudo pamac install $1 --no-confirm
   fi
@@ -20,15 +20,28 @@ pamacInstall()
 yayInstall()
 {
   if pacman -Qs $1 > /dev/null; then
-    echo $1 "is already installed"
+    echo "package" \"$1\" "is already installed"
   else
     yay -S $1 --noconfirm
   fi
 }
 
+snapInstall()
+{
+  if snap list $1 &> /dev/null; then
+    echo "package" \"$1\" "is already installed"
+  else
+    if [ $2 = "classic" ]; then 
+      sudo snap install $1 --classic 
+    else
+      sudo snap install $1 
+    fi
+  fi
+}
+
 gitInstall() {
   if pacman -Qs $2 > /dev/null; then
-    echo $2 "is already installed"
+    echo "package" \"$1\" "is already installed"
   else
     git clone $1 ~/Downloads/$2
     cd ~/Downloads/$2
@@ -45,11 +58,31 @@ else
   sudo pacman -Syu zsh --noconfirm
 fi
 
+# install asdf
+if [ -d $HOME/.asdf ]; then
+  echo "asdf seems already to be installed"
+else
+  git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+  echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.zshrc
+  echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.zshrc
+  source ~/.zshrc
+fi
+
 # install vim
 pacmanInstall "vim"
 
 # install git
 pacmanInstall "git"
+
+# install vim
+pacmanInstall "github-cli"
+
+# install docker
+pacmanInstall "docker" 
+sudo systemctl enable --now docker
+
+# install docker-compose
+pacmanInstall "docker-compose"
 
 # install albert (keyboard launcher)
 pamacInstall "albert"
@@ -74,14 +107,40 @@ yayInstall "google-chrome-beta"
 # install spotify
 yayInstall "spotify"
 
-# install vscode
-yayInstall "vscode"
+# install insomnia
+yayInstall "insomnia"
+
+# install postman
+yayInstall "postman-bin"
 
 # install discord
 yayInstall "discord"
 
 # install skype
 yayInstall "skype"
+
+###############
+####### Installation of Snap Packages
+###############
+
+# install snap support
+yayInstall "snapd"
+sudo ln -s /var/lib/snapd/snap /snap
+sudo systemctl enable --now snapd.socket
+
+# install vscode
+snapInstall "code" "classic"
+
+snapInstall "code-insiders" "classic"
+
+# install dbeaver
+snapInstall "dbeaver-ce"
+
+# install notepad++
+snapInstall "notepad-plus-plus"
+
+# install sublimetext
+snapInstall "sublime-text" "classic"
 
 # upgrade all the packages including AUR
 yay -Syu
